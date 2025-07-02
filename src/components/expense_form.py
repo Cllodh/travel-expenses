@@ -2,12 +2,11 @@
 # 旅行花費表單頁面與提交
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from src.services.google_sheets_service import GoogleSheetsService
 from src.services.currency_service import CurrencyService
+import requests
 
 expense_bp = Blueprint('expense', __name__)
 
-gs_service = GoogleSheetsService()
 currency_service = CurrencyService()
 
 COUNTRY_CURRENCY = {
@@ -53,6 +52,7 @@ def add_currency_symbol(amounts, symbol):
 @expense_bp.route('/', methods=['GET', 'POST'])
 def expense_form():
     if request.method == 'POST':
+        print('收到表單資料:', dict(request.form))
         # 取得表單資料
         country = request.form.get('country')
         period = request.form.get('period')
@@ -65,6 +65,7 @@ def expense_form():
         card = request.form.get('card')
         original_currency = request.form.get('original_currency')
         balance = request.form.get('balance')
+        insurance = float(request.form.get('insurance') or 0)
         currency = COUNTRY_CURRENCY.get(country, '') if country != '其他' else ''
         exchange_list = parse_multi_currency(exchange)
         card_list = parse_multi_currency(card)
@@ -92,12 +93,34 @@ def expense_form():
         # 先合併 (換匯 + 原本有的貨幣 - 現餘)
         other_twd = exchange_twd + original_twd - balance_twd
         # 計算總花費
-        total = ticket + hotel + sim + klook + card_twd + other_twd
+        total = ticket + hotel + insurance + sim + klook + card_twd + other_twd
         total = round(total, 2)
-        # 寫入 Google Sheets，欄位順序需與表單一致
-        row = [country, period, days, ticket, hotel, sim, klook, exchange_str, card_str, original_str, balance_str, rate, total]
-        gs_service.append_row(row)
-        flash(f'已成功寫入 Google Sheets！總花費：{total} TWD')
+        spreadsheet_id = request.form.get('spreadsheet_id')
+        access_token = request.form.get('google_access_token')
+        print('spreadsheet_id:', spreadsheet_id)
+        print('access_token:', access_token)
+        row = [country, period, days, ticket, hotel, sim, klook, insurance, exchange_str, card_str, original_str, balance_str, rate, total]
+        if access_token and spreadsheet_id:
+            # 先檢查 spreadsheet 是否存在
+            check_url = f'https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}'
+            check_headers = {'Authorization': f'Bearer {access_token}'}
+            check_resp = requests.get(check_url, headers=check_headers)
+            if check_resp.status_code == 404:
+                flash('Google Sheets 檔案不存在，請重新登入或建立新表單！')
+                return redirect(url_for('expense.expense_form'))
+            # 用 Google Sheets API 幫 user 寫入自己的表單
+            url = f'https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}/values/工作表1!A1:append?valueInputOption=USER_ENTERED'
+            headers = {'Authorization': f'Bearer {access_token}'}
+            data = {'values': [row]}
+            r = requests.post(url, headers=headers, json=data)
+            result = r.json()
+            print('Google Sheets API 回應:', result)
+            if 'error' in result:
+                flash('寫入 Google Sheets 失敗：' + result['error']['message'])
+            else:
+                flash('已成功寫入您的 Google Sheets！')
+        else:
+            flash('未登入 Google 或未填寫 Google Sheets ID，僅本地處理（不寫入 Google Sheets）')
         return redirect(url_for('expense.expense_form'))
     return render_template('expense_form.html')
 

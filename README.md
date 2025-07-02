@@ -1,5 +1,7 @@
 # 旅行花費記錄系統
 
+版本：v0.1
+
 一個現代化、響應式的旅行花費記錄網頁，支援多國幣別自動換算台幣，並將資料即時寫入 Google Sheets。介面簡潔、分區明確，適合個人或團體旅遊記帳。
 
 ## 主要功能特色
@@ -9,6 +11,16 @@
 - 欄位分區明確，填寫體驗佳
 - 即時計算總花費，公式透明
 - 前端/後端皆有資料驗證
+- 新增「保險」欄位，記錄旅遊保險金額
+
+## 新版 Google Sheets 串接說明
+- 採用 Google Identity Services (GIS) 新版登入，使用者以自己 Google 帳號登入。
+- 登入後自動搜尋 Google Drive 是否已有「我的旅行花費表單」，有則直接使用，無則自動建立新表單並寫入標題。
+- access token、email、spreadsheetId 皆儲存於 localStorage，保留登入狀態。
+- 送出表單時自動帶出 access token 與 spreadsheetId，後端直接寫入該用戶自己的 Google Sheets。
+- 若表單被刪除或 localStorage 遺失，系統會自動重新搜尋或建立新表單。
+- 完善的錯誤處理，access token 過期、表單不存在、權限不足等情境皆有對應 UX 引導。
+- 所有 debug alert 已移除，介面乾淨，僅於 console.log 保留開發資訊。
 
 ## 安裝與執行
 1. **安裝 Python 3.8+**
@@ -16,13 +28,12 @@
    ```sh
    pip install -r requirements.txt
    ```
-3. 取得 Google Sheets API 憑證，放置於專案根目錄（如：`travel-expenses-xxxx.json`）
-4. 設定 `config.py` 內的 Google Sheets 表單 ID
-5. 啟動 Flask 伺服器：
+3. （新版已不需 Service Account 憑證，僅需前端 Google OAuth 設定 client_id）
+4. 啟動 Flask 伺服器：
    ```sh
    python app.py
    ```
-6. 於瀏覽器開啟 http://localhost:5000
+5. 於瀏覽器開啟 http://localhost:5000
 
 ## 前端表單特色
 - 國家下拉選單+其他自訂，匯率自動帶出
@@ -50,6 +61,7 @@
 | 現餘         | 回國時剩餘的當地貨幣         |
 | 匯率         | 1 TWD = ? 當地貨幣           |
 | 總花費       | 依公式自動計算（TWD）        |
+| 保險         | 旅遊保險金額（TWD）            |
 
 ## 版權與聯絡方式
 - 作者：xiaoweijie18@gmail.com

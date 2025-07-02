@@ -273,6 +273,10 @@
                         <label class="form-label"><i class="fa-solid fa-hotel icon"></i>住宿</label>
                         <input type="number" class="form-control" name="hotel" min="0" step="0.01">
                     </div>
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-shield-heart icon"></i>保險</label>
+                        <input type="number" class="form-control" name="insurance" min="0" step="0.01">
+                    </div>
                 </div>
                 <div class="form-row">
                     <div class="col">
@@ -311,18 +315,28 @@
                 <div id="formula-block" style="background:#f8fafc;border-radius:0.7rem;padding:1rem 1.2rem;margin-top:0.5rem;font-size:1.05rem;color:#334155;">
                     <div style="font-weight:600;margin-bottom:0.3em;">計算公式：</div>
                     <div style="font-size:0.98rem;color:#64748b;margin-bottom:0.7em;">
-                        機票 + 住宿 + SIM + klook + 刷卡 + （換匯 + 原本有的貨幣 - 現餘）<br>
+                        機票 + 住宿 + 保險 + SIM + klook + 刷卡 + （換匯 + 原本有的貨幣 - 現餘）<br>
                         <span style="font-size:0.93em;">（刷卡/原本有的貨幣/現餘皆以匯率換算台幣，換匯直接加總台幣）</span>
                     </div>
                     <div style="font-weight:600;">總花費（TWD）：<span id="total-expense" style="color:#2563eb;">0</span></div>
                 </div>
             </div>
             <div class="sticky-btn">
-                <button type="submit" class="btn btn-primary btn-lg shadow"><i class="fa-solid fa-paper-plane"></i> 送出</button>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <button type="submit" class="btn btn-primary btn-lg shadow w-100"><i class="fa-solid fa-paper-plane"></i> 送出</button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" id="google-login-btn" class="btn btn-light btn-lg shadow w-100" style="border:1.5px solid #e0e7ef;display:flex;align-items:center;justify-content:center;gap:8px;">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:1.5em;height:1.5em;"> Google 登入
+                        </button>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         // 國家對應主要幣別
         const countryCurrency = {
@@ -456,6 +470,7 @@
         function calcTotalExpense() {
             const ticket = parseNumber(document.querySelector('[name="ticket"]').value);
             const hotel = parseNumber(document.querySelector('[name="hotel"]').value);
+            const insurance = parseNumber(document.querySelector('[name="insurance"]').value);
             const sim = parseNumber(document.querySelector('[name="sim"]').value);
             const klook = parseNumber(document.querySelector('[name="klook"]').value);
             const exchange = parseNumber(document.querySelector('[name="exchange"]').value);
@@ -468,18 +483,154 @@
             const cardTWD = rate ? card / rate : 0;
             const originalTWD = rate ? original / rate : 0;
             const balanceTWD = rate ? balance / rate : 0;
-            const total = ticket + hotel + sim + klook + cardTWD + (exchange + originalTWD - balanceTWD);
+            const total = ticket + hotel + insurance + sim + klook + cardTWD + (exchange + originalTWD - balanceTWD);
             document.getElementById('total-expense').textContent = Math.round(total*100)/100;
         }
         // 綁定所有金額欄位與匯率欄位
         [
-            '[name="ticket"]', '[name="hotel"]', '[name="sim"]', '[name="klook"]',
+            '[name="ticket"]', '[name="hotel"]', '[name="insurance"]', '[name="sim"]', '[name="klook"]',
             '[name="exchange"]', '[name="card"]', '[name="original_currency"]', '[name="balance"]', '[name="rate"]'
         ].forEach(sel => {
             document.querySelector(sel).addEventListener('input', calcTotalExpense);
         });
         // 初始化
         calcTotalExpense();
+        // Google Sign-In 初始化與登入流程
+        let googleAccessToken = localStorage.getItem('googleAccessToken') || null;
+        let googleUserEmail = localStorage.getItem('googleUserEmail') || null;
+        let userSpreadsheetId = localStorage.getItem('userSpreadsheetId') || null;
+        let tokenClient = null;
+        window.onload = function() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: '880715025662-ttvus3n14fq90jv54ie613dcfsl8e2cn.apps.googleusercontent.com',
+                scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.file',
+                callback: (tokenResponse) => {
+                    googleAccessToken = tokenResponse.access_token;
+                    localStorage.setItem('googleAccessToken', googleAccessToken);
+                    fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                        headers: { Authorization: 'Bearer ' + googleAccessToken }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        googleUserEmail = data.email;
+                        localStorage.setItem('googleUserEmail', googleUserEmail);
+                        document.getElementById('google-login-btn').innerText = '已登入：' + googleUserEmail;
+                        // 每次登入都先搜尋，不管 localStorage 有沒有
+                        findOrCreateUserSheet();
+                    });
+                }
+            });
+            if (googleUserEmail) {
+                document.getElementById('google-login-btn').innerText = '已登入：' + googleUserEmail;
+            }
+            // 送出表單時自動帶出最新的 spreadsheetId
+            document.getElementById('expense-form').onsubmit = function(e) {
+                userSpreadsheetId = localStorage.getItem('userSpreadsheetId');
+                if (googleAccessToken && userSpreadsheetId) {
+                    let tokenInput = document.getElementById('google-access-token');
+                    if (!tokenInput) {
+                        tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = 'google_access_token';
+                        tokenInput.id = 'google-access-token';
+                        this.appendChild(tokenInput);
+                    }
+                    tokenInput.value = googleAccessToken;
+                    let idInput = document.getElementById('spreadsheet_id');
+                    if (!idInput) {
+                        idInput = document.createElement('input');
+                        idInput.type = 'hidden';
+                        idInput.name = 'spreadsheet_id';
+                        idInput.id = 'spreadsheet_id';
+                        this.appendChild(idInput);
+                    }
+                    idInput.value = userSpreadsheetId;
+                } else if (googleAccessToken && !userSpreadsheetId) {
+                    alert('尚未建立 Google Sheets，請稍候再試');
+                    e.preventDefault();
+                    return false;
+                }
+            };
+        };
+        document.getElementById('google-login-btn').onclick = function() {
+            tokenClient.requestAccessToken();
+        };
+        function findOrCreateUserSheet() {
+            fetch('https://www.googleapis.com/drive/v3/files?q=name=%27我的旅行花費表單%27+and+mimeType=%27application/vnd.google-apps.spreadsheet%27&fields=files(id,name,createdTime)&orderBy=createdTime', {
+                headers: { Authorization: 'Bearer ' + googleAccessToken }
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Drive API 搜尋回應:', data);
+                if (data.files && data.files.length > 0) {
+                    userSpreadsheetId = data.files[0].id;
+                    localStorage.setItem('userSpreadsheetId', userSpreadsheetId);
+                    // alert('已找到您原有的 Google Sheets！');
+                } else {
+                    // alert('沒有找到同名檔案，將建立新表單');
+                    createUserSheet();
+                }
+            })
+            .catch(function(err) {
+                // alert('搜尋 Google Sheets 失敗：' + JSON.stringify(err));
+                createUserSheet();
+            });
+        }
+        function createUserSheet() {
+            fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + googleAccessToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    properties: { title: '我的旅行花費表單' },
+                    sheets: [{ properties: { title: '工作表1' } }]
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.spreadsheetId) {
+                    userSpreadsheetId = data.spreadsheetId;
+                    localStorage.setItem('userSpreadsheetId', userSpreadsheetId);
+                    // 寫入標題
+                    const headers = [
+                        '旅行國家', '時間區間', '天數', '機票', '住宿', 'SIM', 'KLOOK/KKDAY', '保險',
+                        '換匯', '刷卡', '原本有的貨幣', '現餘', '匯率', '總花費'
+                    ];
+                    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${userSpreadsheetId}/values/工作表1!A1:append?valueInputOption=USER_ENTERED`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + googleAccessToken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ values: [headers] })
+                    })
+                    .then(res => res.json())
+                    .then(resp => {
+                        if (resp.updates) {
+                            // alert('已自動建立您的 Google Sheets 並加入標題！');
+                        } else {
+                            alert('標題寫入失敗：' + JSON.stringify(resp));
+                        }
+                    })
+                    .catch(function(err) {
+                        alert('標題寫入請求失敗：' + JSON.stringify(err));
+                    });
+                } else {
+                    alert('建立 Google Sheets 失敗：' + JSON.stringify(data));
+                }
+            })
+            .catch(function(err) {
+                alert('建立 Google Sheets 請求失敗：' + JSON.stringify(err));
+            });
+        }
+        window.addEventListener('DOMContentLoaded', function() {
+            if (document.body.innerText.includes('Google Sheets 檔案不存在')) {
+                localStorage.removeItem('userSpreadsheetId');
+                alert('Google Sheets 檔案不存在，已自動清除本地紀錄，請重新登入或送出表單以建立新表單。');
+            }
+        });
     </script>
 </body>
 </html>  
