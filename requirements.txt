@@ -1,0 +1,7 @@
+Flask
+Flask-WTF
+gspread
+google-auth
+google-auth-oauthlib
+requests
+python-dotenv 

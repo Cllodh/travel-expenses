@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>旅行花費紀錄</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            background: #f1f5f9;
+        }
+        .main-card {
+            max-width: 700px;
+            margin: 40px auto 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 32px #2563eb22;
+            padding: 0;
+            overflow: hidden;
+        }
+        .form-section {
+            padding: 32px 32px 18px 32px;
+            border-bottom: 1.5px solid #e0e7ef;
+        }
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        .section-title {
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.3rem;
+        }
+        .section-title .icon {
+            background: #e0e7ef;
+            border-radius: 50%;
+            padding: 0.4em;
+            font-size: 1.1em;
+            color: #2563eb;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #334155;
+        }
+        .form-control, .form-select {
+            border-radius: 0.9rem;
+            font-size: 1.08rem;
+            padding: 0.7rem 1rem;
+            border: 1.5px solid #e0e7ef;
+            background: #f8fafc;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px #2563eb33;
+            background: #e0f2fe;
+        }
+        .form-control:hover, .form-select:hover {
+            background: #e0f2fe;
+        }
+        .form-row {
+            display: flex;
+            gap: 1.2rem;
+        }
+        .form-row > .col {
+            flex: 1 1 0;
+        }
+        .form-row + .form-row {
+            margin-top: 1.1rem;
+        }
+        .form-text {
+            color: #64748b;
+            font-size: 0.98rem;
+            margin-top: 0.2rem;
+        }
+        .alert-info {
+            background: #e0e7ef;
+            color: #2563eb;
+            border: none;
+            border-radius: 0 0 1.1rem 1.1rem;
+            margin-bottom: 0;
+        }
+        .alert-success {
+            background: #dbeafe;
+            color: #2563eb;
+            border: none;
+            border-radius: 0.7rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 24px 32px 0 32px;
+        }
+        .sticky-btn {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            padding: 18px 32px 24px 32px;
+            border-top: 1.5px solid #e0e7ef;
+            z-index: 10;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 1.1rem;
+            padding: 1.1rem 0;
+            width: 100%;
+            transition: box-shadow 0.2s, transform 0.1s;
+        }
+        .btn-primary:active {
+            box-shadow: 0 2px 12px #2563eb44;
+            transform: scale(0.98);
+        }
+        @media (max-width: 700px) {
+            .main-card, .alert-success {
+                margin-left: 0;
+                margin-right: 0;
+                border-radius: 0;
+            }
+            .form-section, .sticky-btn {
+                padding: 18px 4vw 10px 4vw;
+            }
+            .alert-success {
+                margin: 18px 4vw 0 4vw;
+            }
+        }
+        @media (max-width: 500px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+        .icon { color: #0d6efd; margin-right: 8px; }
+        #other-country-group { display: none; }
+        #rate { max-width: 120px; display: inline-block; margin-left: 8px; }
+        .rate-info {
+            font-weight: 500;
+            color: #555;
+            white-space: nowrap;
+            font-size: 1.08rem;
+            display: flex;
+            align-items: center;
+            margin-right: 8px;
+        }
+        .info-card {
+            background: #e0f2fe;
+            color: #2563eb;
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 12px #2563eb10;
+            padding: 0.4rem 0.7rem 0.4rem 0.7rem;
+            margin-bottom: 0.7rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.45rem;
+            font-size: 0.98rem;
+        }
+        .info-card .info-icon {
+            font-size: 1.1rem;
+            margin-top: 2px;
+            color: #0ea5e9;
+            flex-shrink: 0;
+        }
+        .info-card .info-content {
+            font-size: 0.93rem;
+            line-height: 1.5;
+        }
+        .info-card b {
+            color: #2563eb;
+            font-weight: 700;
+        }
+        @media (max-width: 700px) {
+            .info-card {
+                padding: 0.3rem 0.3rem 0.3rem 0.3rem;
+                font-size: 0.93rem;
+            }
+            .info-card .info-content {
+                font-size: 0.9rem;
+            }
+        }
+        .form-control[type=number]::-webkit-inner-spin-button,
+        .form-control[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .form-control[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-card">
+        <h1 class="text-center" style="font-size:2.1rem;font-weight:800;color:#2563eb;margin:32px 0 12px 0;letter-spacing:1px;">
+            <i class="fa-solid fa-earth-asia icon"></i>
+            旅行花費紀錄表單
+        </h1>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert alert-success mt-4" role="alert">
+            {% for message in messages %}
+              {{ message }}<br>
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <form method="post" autocomplete="off" id="expense-form">
+            <div class="form-section">
+                <div class="section-title"><span class="icon"><i class="fa-solid fa-plane-departure"></i></span> 旅行基本資訊</div>
+                <div class="form-row">
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-flag icon"></i>旅行國家</label>
+                        <select class="form-select" name="country" id="country-select" required>
+                            <option value="">請選擇國家</option>
+                            <option value="日本">日本</option>
+                            <option value="韓國">韓國</option>
+                            <option value="美國">美國</option>
+                            <option value="泰國">泰國</option>
+                            <option value="法國">法國</option>
+                            <option value="德國">德國</option>
+                            <option value="英國">英國</option>
+                            <option value="澳洲">澳洲</option>
+                            <option value="越南">越南</option>
+                            <option value="馬來西亞">馬來西亞</option>
+                            <option value="香港">香港</option>
+                            <option value="義大利">義大利</option>
+                            <option value="新加坡">新加坡</option>
+                            <option value="印尼">印尼</option>
+                            <option value="菲律賓">菲律賓</option>
+                            <option value="加拿大">加拿大</option>
+                            <option value="紐西蘭">紐西蘭</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-coins icon"></i>匯率</label>
+                        <div class="d-flex align-items-center">
+                            <input type="text" class="form-control" name="rate" id="rate" placeholder="匯率" style="max-width:120px;">
+                            <span class="form-text" id="rate-info-text" style="margin-left:8px;">1 TWD = ?</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-calendar-day icon"></i>出發日</label>
+                        <input type="date" class="form-control" id="start-date" required>
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-calendar-day icon"></i>回國日</label>
+                        <input type="date" class="form-control" id="end-date" required>
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-clock icon"></i>天數</label>
+                        <input type="number" class="form-control" name="days" id="days" min="1" readonly required>
+                    </div>
+                </div>
+                <div class="mb-3" id="other-country-group" style="margin-top:1rem;">
+                    <label class="form-label">請輸入國家</label>
+                    <input type="text" class="form-control" id="other-country-input">
+                </div>
+                <input type="hidden" name="period" id="period">
+            </div>
+            <div class="form-section">
+                <div class="section-title"><span class="icon"><i class="fa-solid fa-wallet"></i></span> 花費明細</div>
+                <div class="form-row">
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-plane-departure icon"></i>機票</label>
+                        <input type="number" class="form-control" name="ticket" min="0" step="0.01">
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-hotel icon"></i>住宿</label>
+                        <input type="number" class="form-control" name="hotel" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-sim-card icon"></i>SIM</label>
+                        <input type="number" class="form-control" name="sim" min="0" step="0.01">
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-ticket icon"></i>KLOOK/KKDAY</label>
+                        <input type="number" class="form-control" name="klook" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-money-bill-transfer icon"></i>換匯</label>
+                        <input type="text" class="form-control" name="exchange" id="exchange" placeholder="請輸入台幣金額">
+                        <div class="form-text">可填多筆，逗號分隔</div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-credit-card icon"></i>刷卡</label>
+                        <input type="text" class="form-control" name="card" id="card" placeholder="請輸入當地貨幣金額">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-coins icon"></i>原本有的貨幣</label>
+                        <input type="text" class="form-control" name="original_currency" placeholder="請輸入當地貨幣金額">
+                    </div>
+                    <div class="col">
+                        <label class="form-label"><i class="fa-solid fa-wallet icon"></i>現餘</label>
+                        <input type="text" class="form-control" name="balance" placeholder="請輸入當地貨幣金額">
+                    </div>
+                </div>
+            </div>
+            <div class="form-section">
+                <div class="section-title"><span class="icon"><i class="fa-solid fa-calculator"></i></span> 旅程花費</div>
+                <div id="formula-block" style="background:#f8fafc;border-radius:0.7rem;padding:1rem 1.2rem;margin-top:0.5rem;font-size:1.05rem;color:#334155;">
+                    <div style="font-weight:600;margin-bottom:0.3em;">計算公式：</div>
+                    <div style="font-size:0.98rem;color:#64748b;margin-bottom:0.7em;">
+                        機票 + 住宿 + SIM + klook + 刷卡 + （換匯 + 原本有的貨幣 - 現餘）<br>
+                        <span style="font-size:0.93em;">（刷卡/原本有的貨幣/現餘皆以匯率換算台幣，換匯直接加總台幣）</span>
+                    </div>
+                    <div style="font-weight:600;">總花費（TWD）：<span id="total-expense" style="color:#2563eb;">0</span></div>
+                </div>
+            </div>
+            <div class="sticky-btn">
+                <button type="submit" class="btn btn-primary btn-lg shadow"><i class="fa-solid fa-paper-plane"></i> 送出</button>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 國家對應主要幣別
+        const countryCurrency = {
+            '日本': 'JPY',
+            '韓國': 'KRW',
+            '美國': 'USD',
+            '泰國': 'THB',
+            '法國': 'EUR',
+            '德國': 'EUR',
+            '英國': 'GBP',
+            '澳洲': 'AUD',
+            '越南': 'VND',
+            '馬來西亞': 'MYR',
+            '香港': 'HKD',
+            '義大利': 'EUR',
+            '新加坡': 'SGD',
+            '印尼': 'IDR',
+            '菲律賓': 'PHP',
+            '加拿大': 'CAD',
+            '紐西蘭': 'NZD'
+        };
+        let currentCurrency = '';
+        // 國家下拉選單顯示其他輸入
+        document.getElementById('country-select').addEventListener('change', function() {
+            var otherGroup = document.getElementById('other-country-group');
+            var country = this.value;
+            var rateInput = document.getElementById('rate');
+            var rateInfoText = document.getElementById('rate-info-text');
+            if (country === '其他') {
+                otherGroup.style.display = 'block';
+                document.getElementById('other-country-input').setAttribute('name', 'country');
+                document.getElementById('other-country-input').required = true;
+                this.removeAttribute('name');
+                rateInput.value = '';
+                rateInput.placeholder = '匯率';
+                currentCurrency = '貨幣';
+                rateInfoText.textContent = '1 TWD = ? 貨幣';
+            } else {
+                otherGroup.style.display = 'none';
+                document.getElementById('other-country-input').removeAttribute('name');
+                document.getElementById('other-country-input').required = false;
+                this.setAttribute('name', 'country');
+                // 自動查詢匯率（TWD→該國幣別）
+                let currency = countryCurrency[country];
+                currentCurrency = currency || '貨幣';
+                if (currency && currency !== 'TWD') {
+                    fetch(`/rate?currency=${currency}`)
+                        .then(resp => resp.json())
+                        .then(data => {
+                            if (data && data.rate) {
+                                // 1 TWD = ? 幣別
+                                rateInput.value = (1 / data.rate).toFixed(4);
+                                rateInput.placeholder = '匯率';
+                                rateInfoText.textContent = `1 TWD = ${rateInput.value} ${currency}`;
+                            } else {
+                                rateInput.value = '';
+                                rateInput.placeholder = '匯率';
+                                rateInfoText.textContent = `1 TWD = ? ${currency}`;
+                            }
+                        });
+                } else {
+                    rateInput.value = '';
+                    rateInput.placeholder = '匯率';
+                    rateInfoText.textContent = '1 TWD = ? 貨幣';
+                }
+            }
+        });
+        // 匯率輸入時即時顯示
+        document.getElementById('rate').addEventListener('input', function() {
+            var rateInfoText = document.getElementById('rate-info-text');
+            var val = this.value;
+            if (val && !isNaN(val)) {
+                rateInfoText.textContent = `1 TWD = ${val} ${currentCurrency || '貨幣'}`;
+            } else {
+                rateInfoText.textContent = `1 TWD = ? ${currentCurrency || '貨幣'}`;
+            }
+        });
+        // 日期區間自動計算天數與 period，並驗證回國日不能早於出發日
+        function calcDaysAndPeriod() {
+            var start = document.getElementById('start-date').value;
+            var end = document.getElementById('end-date').value;
+            var daysInput = document.getElementById('days');
+            var periodInput = document.getElementById('period');
+            if (start && end) {
+                var startDate = new Date(start);
+                var endDate = new Date(end);
+                if (endDate < startDate) {
+                    alert('回國日期不能早於出發日期！');
+                    document.getElementById('end-date').value = '';
+                    daysInput.value = '';
+                    periodInput.value = '';
+                    return;
+                }
+                var diff = (endDate - startDate) / (1000 * 60 * 60 * 24) + 1;
+                daysInput.value = diff > 0 ? diff : '';
+                periodInput.value = start + ' ~ ' + end;
+            } else {
+                daysInput.value = '';
+                periodInput.value = '';
+            }
+        }
+        document.getElementById('start-date').addEventListener('change', function() {
+            var start = this.value;
+            var endInput = document.getElementById('end-date');
+            if (start) {
+                endInput.min = start;
+                if (endInput.value && endInput.value < start) {
+                    endInput.value = '';
+                }
+            } else {
+                endInput.min = '';
+            }
+            calcDaysAndPeriod();
+        });
+        document.getElementById('end-date').addEventListener('change', calcDaysAndPeriod);
+        // 送出前再次組合 period
+        document.getElementById('expense-form').addEventListener('submit', function() {
+            var start = document.getElementById('start-date').value;
+            var end = document.getElementById('end-date').value;
+            document.getElementById('period').value = start && end ? (start + ' ~ ' + end) : '';
+        });
+        // 動態計算總花費
+        function parseNumber(val) {
+            if (!val) return 0;
+            if (typeof val === 'number') return val;
+            if (val.includes(',')) {
+                return val.split(',').map(v => parseFloat(v.trim()) || 0).reduce((a,b)=>a+b,0);
+            }
+            return parseFloat(val) || 0;
+        }
+        function calcTotalExpense() {
+            const ticket = parseNumber(document.querySelector('[name="ticket"]').value);
+            const hotel = parseNumber(document.querySelector('[name="hotel"]').value);
+            const sim = parseNumber(document.querySelector('[name="sim"]').value);
+            const klook = parseNumber(document.querySelector('[name="klook"]').value);
+            const exchange = parseNumber(document.querySelector('[name="exchange"]').value);
+            const card = parseNumber(document.querySelector('[name="card"]').value);
+            const original = parseNumber(document.querySelector('[name="original_currency"]').value);
+            const balance = parseNumber(document.querySelector('[name="balance"]').value);
+            let rate = parseFloat(document.querySelector('[name="rate"]').value);
+            if (!rate || isNaN(rate)) rate = 0;
+            // 刷卡、原本有的貨幣、現餘都換算成台幣
+            const cardTWD = rate ? card / rate : 0;
+            const originalTWD = rate ? original / rate : 0;
+            const balanceTWD = rate ? balance / rate : 0;
+            const total = ticket + hotel + sim + klook + cardTWD + (exchange + originalTWD - balanceTWD);
+            document.getElementById('total-expense').textContent = Math.round(total*100)/100;
+        }
+        // 綁定所有金額欄位與匯率欄位
+        [
+            '[name="ticket"]', '[name="hotel"]', '[name="sim"]', '[name="klook"]',
+            '[name="exchange"]', '[name="card"]', '[name="original_currency"]', '[name="balance"]', '[name="rate"]'
+        ].forEach(sel => {
+            document.querySelector(sel).addEventListener('input', calcTotalExpense);
+        });
+        // 初始化
+        calcTotalExpense();
+    </script>
+</body>
+</html>  
