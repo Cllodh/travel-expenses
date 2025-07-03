@@ -164,5 +164,12 @@
 <h2>Contact Us</h2>
 <p>If you have any questions about this Privacy Policy, You can contact us:</p>
 <ul>
-<li>By email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5f3230302d3a713c302f1f38323e3633713c3032">[email&#160;protected]</a></li>
-</ul><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+  <li>Email: <span id="email"></span></li>
+</ul>
+
+<script>
+  const user = "moore.cop";
+  const domain = "gmail.com";
+  document.getElementById("email").innerHTML =
+    `<a href="mailto:${user}@${domain}">${user}@${domain}</a>`;
+</script>
