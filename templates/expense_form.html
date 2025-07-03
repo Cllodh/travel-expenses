@@ -442,7 +442,7 @@
             if (start && end) {
                 var startDate = new Date(start);
                 var endDate = new Date(end);
-                if (endDate < startDate) {
+                if (end && start && endDate < startDate) {
                     alert('回國日期不能早於出發日期！');
                     document.getElementById('end-date').value = '';
                     daysInput.value = '';
