@@ -10,6 +10,9 @@ expense_bp = Blueprint('expense', __name__)
 currency_service = CurrencyService()
 
 COUNTRY_CURRENCY = {
+    '台灣': 'TWD',
+    '澳門': 'MOP',
+    '香港': 'HKD',
     '日本': 'JPY',
     '韓國': 'KRW',
     '美國': 'USD',
@@ -20,13 +23,13 @@ COUNTRY_CURRENCY = {
     '澳洲': 'AUD',
     '越南': 'VND',
     '馬來西亞': 'MYR',
-    '香港': 'HKD',
     '義大利': 'EUR',
     '新加坡': 'SGD',
     '印尼': 'IDR',
     '菲律賓': 'PHP',
     '加拿大': 'CAD',
-    '紐西蘭': 'NZD'
+    '紐西蘭': 'NZD',
+    '中國': 'CNY'
 }
 
 def parse_multi_currency(text):
@@ -73,6 +76,7 @@ def expense_form():
         balance_list = parse_multi_currency(balance)
         exchange_str = add_currency_symbol(exchange_list, 'TWD')
         card_str = add_currency_symbol(card_list, currency)
+        card_str = card_str.replace('TWD', currency)
         original_str = add_currency_symbol(original_list, currency)
         balance_str = add_currency_symbol(balance_list, currency)
         # 換匯直接加總（台幣）
@@ -108,6 +112,14 @@ def expense_form():
             if check_resp.status_code == 404:
                 flash('Google Sheets 檔案不存在，請重新登入或建立新表單！')
                 return redirect(url_for('expense.expense_form'))
+            # 自動更新標題列
+            headers = [
+                '旅行國家', '時間區間', '天數', '機票', '住宿', 'SIM', '票券', '保險',
+                '換匯', '刷卡', '原本有的貨幣', '現餘', '匯率', '總花費'
+            ]
+            update_url = f'https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}/values/工作表1!A1:N1?valueInputOption=USER_ENTERED'
+            update_data = {'values': [headers]}
+            requests.put(update_url, headers=check_headers, json=update_data)
             # 用 Google Sheets API 幫 user 寫入自己的表單
             url = f'https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}/values/工作表1!A1:append?valueInputOption=USER_ENTERED'
             headers = {'Authorization': f'Bearer {access_token}'}
@@ -132,4 +144,8 @@ def get_rate():
     rate = currency_service.rates.get(currency.upper())
     if rate:
         return jsonify({'rate': round(1/rate, 4)})
-    return jsonify({'rate': None}) 
+    return jsonify({'rate': None})
+
+@expense_bp.route('/api/countries')
+def get_countries():
+    return jsonify(COUNTRY_CURRENCY) 

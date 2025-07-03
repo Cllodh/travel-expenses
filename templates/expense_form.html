@@ -101,19 +101,38 @@
             border-top: 1.5px solid #e0e7ef;
             z-index: 10;
         }
-        .btn-primary {
-            background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+        .login-sync-btn {
+            background: linear-gradient(90deg, #4285f4 60%, #34a853 100%);
+            color: #fff;
             border: none;
-            font-size: 1.2rem;
+            font-size: 1.08rem;
             font-weight: 700;
-            border-radius: 1.1rem;
-            padding: 1.1rem 0;
-            width: 100%;
-            transition: box-shadow 0.2s, transform 0.1s;
+            border-radius: 1.5rem;
+            padding: 0.9rem 0;
+            transition: box-shadow 0.2s, background 0.2s;
+            box-shadow: 0 2px 12px #2563eb22;
         }
-        .btn-primary:active {
-            box-shadow: 0 2px 12px #2563eb44;
-            transform: scale(0.98);
+        .login-sync-btn.success {
+            background: linear-gradient(90deg, #34d399 60%, #10b981 100%);
+            color: #fff;
+        }
+        .logout-btn {
+            background: #fff;
+            color: #e11d48;
+            border: 2px solid #e11d48;
+            font-size: 1.08rem;
+            font-weight: 700;
+            border-radius: 1.5rem;
+            padding: 0.9rem 0;
+            transition: background 0.2s, color 0.2s;
+        }
+        .logout-btn:hover {
+            background: #e11d48;
+            color: #fff;
+        }
+        .btns-flex {
+            display: flex;
+            gap: 12px;
         }
         @media (max-width: 700px) {
             .main-card, .alert-success {
@@ -126,6 +145,10 @@
             }
             .alert-success {
                 margin: 18px 4vw 0 4vw;
+            }
+            .btns-flex {
+                flex-direction: column;
+                gap: 10px;
             }
         }
         @media (max-width: 500px) {
@@ -189,6 +212,17 @@
         .form-control[type=number] {
             -moz-appearance: textfield;
         }
+        .login-sync-btn span#login-sync-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 180px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .login-sync-btn img {
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -197,6 +231,11 @@
             <i class="fa-solid fa-earth-asia icon"></i>
             旅行花費紀錄表單
         </h1>
+        <div style="background:#f3fcf3;color:#25633b;font-size:0.99rem;margin-bottom:18px;padding:7px 14px 7px 14px;border-radius:7px;line-height:1.7;text-align:left;border:1.2px solid #d2f5d2;max-width:95%;margin-left:auto;margin-right:auto;">
+            <div style="margin-bottom:4px;">請依照實際旅程填寫各項花費，系統會自動換算匯率與計算總金額。</div>
+            <div style="margin-bottom:4px;">選擇國家後，匯率會自動帶出（也可自行修改），所有金額皆可多筆輸入（逗號分隔）。</div>
+            <div>完成後可送出並同步至 Google Sheets，方便日後查詢與管理。</div>
+        </div>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             <div class="alert alert-success mt-4" role="alert">
@@ -214,24 +253,6 @@
                         <label class="form-label"><i class="fa-solid fa-flag icon"></i>旅行國家</label>
                         <select class="form-select" name="country" id="country-select" required>
                             <option value="">請選擇國家</option>
-                            <option value="日本">日本</option>
-                            <option value="韓國">韓國</option>
-                            <option value="美國">美國</option>
-                            <option value="泰國">泰國</option>
-                            <option value="法國">法國</option>
-                            <option value="德國">德國</option>
-                            <option value="英國">英國</option>
-                            <option value="澳洲">澳洲</option>
-                            <option value="越南">越南</option>
-                            <option value="馬來西亞">馬來西亞</option>
-                            <option value="香港">香港</option>
-                            <option value="義大利">義大利</option>
-                            <option value="新加坡">新加坡</option>
-                            <option value="印尼">印尼</option>
-                            <option value="菲律賓">菲律賓</option>
-                            <option value="加拿大">加拿大</option>
-                            <option value="紐西蘭">紐西蘭</option>
-                            <option value="其他">其他</option>
                         </select>
                     </div>
                     <div class="col">
@@ -284,7 +305,7 @@
                         <input type="number" class="form-control" name="sim" min="0" step="0.01">
                     </div>
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-ticket icon"></i>KLOOK/KKDAY</label>
+                        <label class="form-label"><i class="fa-solid fa-ticket icon"></i>票券</label>
                         <input type="number" class="form-control" name="klook" min="0" step="0.01">
                     </div>
                 </div>
@@ -315,22 +336,18 @@
                 <div id="formula-block" style="background:#f8fafc;border-radius:0.7rem;padding:1rem 1.2rem;margin-top:0.5rem;font-size:1.05rem;color:#334155;">
                     <div style="font-weight:600;margin-bottom:0.3em;">計算公式：</div>
                     <div style="font-size:0.98rem;color:#64748b;margin-bottom:0.7em;">
-                        機票 + 住宿 + 保險 + SIM + klook + 刷卡 + （換匯 + 原本有的貨幣 - 現餘）<br>
+                        機票 + 住宿 + 保險 + SIM + 票券 + 刷卡 + （換匯 + 原本有的貨幣 - 現餘）<br>
                         <span style="font-size:0.93em;">（刷卡/原本有的貨幣/現餘皆以匯率換算台幣，換匯直接加總台幣）</span>
                     </div>
                     <div style="font-weight:600;">總花費（TWD）：<span id="total-expense" style="color:#2563eb;">0</span></div>
                 </div>
             </div>
             <div class="sticky-btn">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <button type="submit" class="btn btn-primary btn-lg shadow w-100"><i class="fa-solid fa-paper-plane"></i> 送出</button>
-                    </div>
-                    <div class="col-6">
-                        <button type="button" id="google-login-btn" class="btn btn-light btn-lg shadow w-100" style="border:1.5px solid #e0e7ef;display:flex;align-items:center;justify-content:center;gap:8px;">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:1.5em;height:1.5em;"> Google 登入
-                        </button>
-                    </div>
+                <div class="btns-flex">
+                    <button type="button" id="login-sync-btn" class="login-sync-btn w-100 d-flex align-items-center justify-content-center gap-2">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:1.5em;height:1.5em;"> <span id="login-sync-text">登入並同步</span>
+                    </button>
+                    <button type="button" id="logout-btn" class="logout-btn w-100" style="display:none;">登出</button>
                 </div>
             </div>
         </form>
@@ -338,27 +355,20 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
-        // 國家對應主要幣別
-        const countryCurrency = {
-            '日本': 'JPY',
-            '韓國': 'KRW',
-            '美國': 'USD',
-            '泰國': 'THB',
-            '法國': 'EUR',
-            '德國': 'EUR',
-            '英國': 'GBP',
-            '澳洲': 'AUD',
-            '越南': 'VND',
-            '馬來西亞': 'MYR',
-            '香港': 'HKD',
-            '義大利': 'EUR',
-            '新加坡': 'SGD',
-            '印尼': 'IDR',
-            '菲律賓': 'PHP',
-            '加拿大': 'CAD',
-            '紐西蘭': 'NZD'
-        };
+        let countryCurrency = {};
         let currentCurrency = '';
+        // 動態取得國家與幣別對應，產生下拉選單
+        fetch('/api/countries')
+          .then(res => res.json())
+          .then(data => {
+            countryCurrency = data;
+            const select = document.getElementById('country-select');
+            select.innerHTML = '<option value="">請選擇國家</option>';
+            Object.keys(data).forEach(country => {
+              select.innerHTML += `<option value="${country}">${country}</option>`;
+            });
+            select.innerHTML += '<option value="其他">其他</option>';
+          });
         // 國家下拉選單顯示其他輸入
         document.getElementById('country-select').addEventListener('change', function() {
             var otherGroup = document.getElementById('other-country-group');
@@ -374,6 +384,15 @@
                 rateInput.placeholder = '匯率';
                 currentCurrency = '貨幣';
                 rateInfoText.textContent = '1 TWD = ? 貨幣';
+            } else if (country === '台灣') {
+                otherGroup.style.display = 'none';
+                document.getElementById('other-country-input').removeAttribute('name');
+                document.getElementById('other-country-input').required = false;
+                this.setAttribute('name', 'country');
+                rateInput.value = '1';
+                rateInput.placeholder = '1';
+                currentCurrency = 'TWD';
+                rateInfoText.textContent = '1 TWD = 1 TWD';
             } else {
                 otherGroup.style.display = 'none';
                 document.getElementById('other-country-input').removeAttribute('name');
@@ -453,10 +472,11 @@
         });
         document.getElementById('end-date').addEventListener('change', calcDaysAndPeriod);
         // 送出前再次組合 period
-        document.getElementById('expense-form').addEventListener('submit', function() {
-            var start = document.getElementById('start-date').value;
-            var end = document.getElementById('end-date').value;
-            document.getElementById('period').value = start && end ? (start + ' ~ ' + end) : '';
+        document.getElementById('expense-form').addEventListener('submit', function(e) {
+            setTimeout(function() {
+                alert('已同步成功！如需登記第二筆，請繼續填寫並再次點擊「登入並同步」');
+                document.getElementById('expense-form').reset();
+            }, 300);
         });
         // 動態計算總花費
         function parseNumber(val) {
@@ -498,6 +518,7 @@
         // Google Sign-In 初始化與登入流程
         let googleAccessToken = localStorage.getItem('googleAccessToken') || null;
         let googleUserEmail = localStorage.getItem('googleUserEmail') || null;
+        let googleUserName = localStorage.getItem('googleUserName') || null;
         let userSpreadsheetId = localStorage.getItem('userSpreadsheetId') || null;
         let tokenClient = null;
         window.onload = function() {
@@ -513,48 +534,94 @@
                     .then(res => res.json())
                     .then(data => {
                         googleUserEmail = data.email;
+                        googleUserName = data.name || data.email;
                         localStorage.setItem('googleUserEmail', googleUserEmail);
-                        document.getElementById('google-login-btn').innerText = '已登入：' + googleUserEmail;
-                        // 每次登入都先搜尋，不管 localStorage 有沒有
+                        localStorage.setItem('googleUserName', googleUserName);
+                        setLoginSyncBtn(true);
                         findOrCreateUserSheet();
                     });
                 }
             });
             if (googleUserEmail) {
-                document.getElementById('google-login-btn').innerText = '已登入：' + googleUserEmail;
+                setLoginSyncBtn(true);
             }
-            // 送出表單時自動帶出最新的 spreadsheetId
-            document.getElementById('expense-form').onsubmit = function(e) {
-                userSpreadsheetId = localStorage.getItem('userSpreadsheetId');
-                if (googleAccessToken && userSpreadsheetId) {
-                    let tokenInput = document.getElementById('google-access-token');
-                    if (!tokenInput) {
-                        tokenInput = document.createElement('input');
-                        tokenInput.type = 'hidden';
-                        tokenInput.name = 'google_access_token';
-                        tokenInput.id = 'google-access-token';
-                        this.appendChild(tokenInput);
-                    }
-                    tokenInput.value = googleAccessToken;
-                    let idInput = document.getElementById('spreadsheet_id');
-                    if (!idInput) {
-                        idInput = document.createElement('input');
-                        idInput.type = 'hidden';
-                        idInput.name = 'spreadsheet_id';
-                        idInput.id = 'spreadsheet_id';
-                        this.appendChild(idInput);
-                    }
-                    idInput.value = userSpreadsheetId;
-                } else if (googleAccessToken && !userSpreadsheetId) {
-                    alert('尚未建立 Google Sheets，請稍候再試');
-                    e.preventDefault();
-                    return false;
-                }
-            };
         };
-        document.getElementById('google-login-btn').onclick = function() {
-            tokenClient.requestAccessToken();
+        // 將登入與送出合併
+        function fillGoogleFields() {
+            let tokenInput = document.getElementById('google-access-token');
+            if (!tokenInput) {
+                tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = 'google_access_token';
+                tokenInput.id = 'google-access-token';
+                document.getElementById('expense-form').appendChild(tokenInput);
+            }
+            tokenInput.value = googleAccessToken;
+
+            let idInput = document.getElementById('spreadsheet_id');
+            if (!idInput) {
+                idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'spreadsheet_id';
+                idInput.id = 'spreadsheet_id';
+                document.getElementById('expense-form').appendChild(idInput);
+            }
+            idInput.value = userSpreadsheetId;
+        }
+        function setLoginSyncBtn(loggedIn) {
+            const btn = document.getElementById('login-sync-btn');
+            const text = document.getElementById('login-sync-text');
+            const logoutBtn = document.getElementById('logout-btn');
+            if (loggedIn) {
+                text.textContent = '繼續登記';
+                text.title = '';
+                btn.classList.add('success');
+                logoutBtn.style.display = '';
+            } else {
+                text.textContent = '登入並同步';
+                text.title = '';
+                btn.classList.remove('success');
+                logoutBtn.style.display = 'none';
+            }
+        }
+        document.getElementById('login-sync-btn').onclick = function() {
+            if (!googleAccessToken) {
+                tokenClient.requestAccessToken();
+                // 登入成功後自動送出表單
+                tokenClient.callback = function(tokenResponse) {
+                    googleAccessToken = tokenResponse.access_token;
+                    localStorage.setItem('googleAccessToken', googleAccessToken);
+                    fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                        headers: { Authorization: 'Bearer ' + googleAccessToken }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        googleUserEmail = data.email;
+                        googleUserName = data.name || data.email;
+                        localStorage.setItem('googleUserEmail', googleUserEmail);
+                        localStorage.setItem('googleUserName', googleUserName);
+                        setLoginSyncBtn(true);
+                        findOrCreateUserSheet();
+                        setTimeout(() => {
+                            fillGoogleFields();
+                            document.getElementById('expense-form').submit();
+                        }, 500);
+                    });
+                };
+            } else {
+                setLoginSyncBtn(true);
+                fillGoogleFields();
+                document.getElementById('expense-form').submit();
+            }
         };
+        // 頁面載入時自動顯示登入狀態
+        window.addEventListener('DOMContentLoaded', function() {
+            if (googleUserEmail) {
+                setLoginSyncBtn(true);
+            } else {
+                setLoginSyncBtn(false);
+            }
+        });
         function findOrCreateUserSheet() {
             fetch('https://www.googleapis.com/drive/v3/files?q=name=%27我的旅行花費表單%27+and+mimeType=%27application/vnd.google-apps.spreadsheet%27&fields=files(id,name,createdTime)&orderBy=createdTime', {
                 headers: { Authorization: 'Bearer ' + googleAccessToken }
@@ -595,7 +662,7 @@
                     localStorage.setItem('userSpreadsheetId', userSpreadsheetId);
                     // 寫入標題
                     const headers = [
-                        '旅行國家', '時間區間', '天數', '機票', '住宿', 'SIM', 'KLOOK/KKDAY', '保險',
+                        '旅行國家', '時間區間', '天數', '機票', '住宿', 'SIM', '票券', '保險',
                         '換匯', '刷卡', '原本有的貨幣', '現餘', '匯率', '總花費'
                     ];
                     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${userSpreadsheetId}/values/工作表1!A1:append?valueInputOption=USER_ENTERED`, {
@@ -631,6 +698,18 @@
                 alert('Google Sheets 檔案不存在，已自動清除本地紀錄，請重新登入或送出表單以建立新表單。');
             }
         });
+        document.getElementById('logout-btn').onclick = function() {
+            localStorage.removeItem('googleAccessToken');
+            localStorage.removeItem('googleUserEmail');
+            localStorage.removeItem('googleUserName');
+            localStorage.removeItem('userSpreadsheetId');
+            googleAccessToken = null;
+            googleUserEmail = null;
+            googleUserName = null;
+            userSpreadsheetId = null;
+            setLoginSyncBtn(false);
+            alert('已登出 Google 帳號！');
+        };
     </script>
     <footer style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center;">
   <a href="{{ url_for('privacy') }}">隱私權政策</a> |
