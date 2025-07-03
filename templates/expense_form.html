@@ -442,13 +442,6 @@
             if (start && end) {
                 var startDate = new Date(start);
                 var endDate = new Date(end);
-                if (end && start && endDate < startDate) {
-                    alert('回國日期不能早於出發日期！');
-                    document.getElementById('end-date').value = '';
-                    daysInput.value = '';
-                    periodInput.value = '';
-                    return;
-                }
                 var diff = (endDate - startDate) / (1000 * 60 * 60 * 24) + 1;
                 daysInput.value = diff > 0 ? diff : '';
                 periodInput.value = start + ' ~ ' + end;
