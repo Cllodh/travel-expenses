@@ -231,10 +231,10 @@
             <i class="fa-solid fa-earth-asia icon"></i>
             旅行花費紀錄表單
         </h1>
-        <div style="background:#f3fcf3;color:#25633b;font-size:0.99rem;margin-bottom:18px;padding:7px 14px 7px 14px;border-radius:7px;line-height:1.7;text-align:left;border:1.2px solid #d2f5d2;max-width:95%;margin-left:auto;margin-right:auto;">
-            <div style="margin-bottom:4px;">請依照實際旅程填寫各項花費，系統會自動換算匯率與計算總金額。</div>
-            <div style="margin-bottom:4px;">選擇國家後，匯率會自動帶出（也可自行修改），所有金額皆可多筆輸入（逗號分隔）。</div>
-            <div>完成後可送出並同步至 Google Sheets，方便日後查詢與管理。</div>
+        <div style="background:#f3fcf3;color:#25633b;font-size:0.93rem;margin-bottom:18px;padding:7px 14px 7px 14px;border-radius:7px;line-height:1.7;text-align:left;border:1.2px solid #d2f5d2;max-width:95%;margin-left:auto;margin-right:auto;">
+            <div style="margin-bottom:4px;"><i class="fa-regular fa-circle-check" style="color:#22c55e;margin-right:6px;"></i>請依旅程填寫各項花費，系統會自動換算匯率與計算總金額。</div>
+            <div style="margin-bottom:4px;"><i class="fa-regular fa-circle-check" style="color:#22c55e;margin-right:6px;"></i>選擇國家後，匯率會自動帶出（也可自行修改），所有金額皆可多筆輸入（逗號分隔）。</div>
+            <div><i class="fa-regular fa-circle-check" style="color:#22c55e;margin-right:6px;"></i>完成後可同步至 Google 試算表，方便日後查看。</div>
         </div>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
@@ -336,8 +336,8 @@
                 <div id="formula-block" style="background:#f8fafc;border-radius:0.7rem;padding:1rem 1.2rem;margin-top:0.5rem;font-size:1.05rem;color:#334155;">
                     <div style="font-weight:600;margin-bottom:0.3em;">計算公式：</div>
                     <div style="font-size:0.98rem;color:#64748b;margin-bottom:0.7em;">
-                        機票 + 住宿 + 保險 + SIM + 票券 + 刷卡 + （換匯 + 原本有的貨幣 - 現餘）<br>
-                        <span style="font-size:0.93em;">（刷卡/原本有的貨幣/現餘皆以匯率換算台幣，換匯直接加總台幣）</span>
+                        機票 + 住宿 + 保險 + SIM + 票券 + 刷卡（台幣） + [換匯（台幣） + 原本有的貨幣（台幣） - 現餘（台幣）]<br>
+                        <span style="font-size:0.93em;">※ 刷卡、原本有的貨幣、現餘皆以匯率換算成台幣，換匯直接加總台幣。</span>
                     </div>
                     <div style="font-weight:600;">總花費（TWD）：<span id="total-expense" style="color:#2563eb;">0</span></div>
                 </div>
