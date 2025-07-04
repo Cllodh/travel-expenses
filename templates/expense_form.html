@@ -246,19 +246,18 @@
           {% endif %}
         {% endwith %}
         <form method="post" autocomplete="off" id="expense-form">
+            {{ form.csrf_token }}
             <div class="form-section">
                 <div class="section-title"><span class="icon"><i class="fa-solid fa-plane-departure"></i></span> 旅行基本資訊</div>
                 <div class="form-row">
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-flag icon"></i>旅行國家</label>
-                        <select class="form-select" name="country" id="country-select" required>
-                            <option value="">請選擇國家</option>
-                        </select>
+                        <label class="form-label">{{ form.country.label }}<i class="fa-solid fa-flag icon"></i></label>
+                        {{ form.country(class_="form-select", id="country-select", required=True) }}
                     </div>
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-coins icon"></i>匯率</label>
+                        <label class="form-label">{{ form.rate.label }}<i class="fa-solid fa-coins icon"></i></label>
                         <div class="d-flex align-items-center">
-                            <input type="text" class="form-control" name="rate" id="rate" placeholder="匯率" style="max-width:120px;">
+                            {{ form.rate(class_="form-control", id="rate", placeholder="匯率", style="max-width:120px;") }}
                             <span class="form-text" id="rate-info-text" style="margin-left:8px;">1 TWD = ?</span>
                         </div>
                     </div>
@@ -273,61 +272,61 @@
                         <input type="date" class="form-control" id="end-date" required>
                     </div>
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-clock icon"></i>天數</label>
-                        <input type="number" class="form-control" name="days" id="days" min="1" readonly required>
+                        <label class="form-label">{{ form.days.label }}<i class="fa-solid fa-clock icon"></i></label>
+                        {{ form.days(class_="form-control", id="days", min=1, readonly=True, required=True) }}
                     </div>
                 </div>
                 <div class="mb-3" id="other-country-group" style="margin-top:1rem;">
                     <label class="form-label">請輸入國家</label>
                     <input type="text" class="form-control" id="other-country-input">
                 </div>
-                <input type="hidden" name="period" id="period">
+                {{ form.period(type="hidden", id="period") }}
             </div>
             <div class="form-section">
                 <div class="section-title"><span class="icon"><i class="fa-solid fa-wallet"></i></span> 花費明細</div>
                 <div class="form-row">
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-plane-departure icon"></i>機票</label>
-                        <input type="number" class="form-control" name="ticket" min="0" step="0.01">
+                        <label class="form-label">{{ form.ticket.label }}<i class="fa-solid fa-plane-departure icon"></i></label>
+                        {{ form.ticket(class_="form-control", min=0, step="0.01") }}
                     </div>
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-hotel icon"></i>住宿</label>
-                        <input type="number" class="form-control" name="hotel" min="0" step="0.01">
+                        <label class="form-label">{{ form.hotel.label }}<i class="fa-solid fa-hotel icon"></i></label>
+                        {{ form.hotel(class_="form-control", min=0, step="0.01") }}
                     </div>
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-shield-heart icon"></i>保險</label>
-                        <input type="number" class="form-control" name="insurance" min="0" step="0.01">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-sim-card icon"></i>SIM</label>
-                        <input type="number" class="form-control" name="sim" min="0" step="0.01">
-                    </div>
-                    <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-ticket icon"></i>票券</label>
-                        <input type="number" class="form-control" name="klook" min="0" step="0.01">
+                        <label class="form-label">{{ form.insurance.label }}<i class="fa-solid fa-shield-heart icon"></i></label>
+                        {{ form.insurance(class_="form-control", min=0, step="0.01") }}
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-money-bill-transfer icon"></i>換匯</label>
-                        <input type="text" class="form-control" name="exchange" id="exchange" placeholder="請輸入台幣金額">
+                        <label class="form-label">{{ form.sim.label }}<i class="fa-solid fa-sim-card icon"></i></label>
+                        {{ form.sim(class_="form-control", min=0, step="0.01") }}
+                    </div>
+                    <div class="col">
+                        <label class="form-label">{{ form.klook.label }}<i class="fa-solid fa-ticket icon"></i></label>
+                        {{ form.klook(class_="form-control", min=0, step="0.01") }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col">
+                        <label class="form-label">{{ form.exchange.label }}<i class="fa-solid fa-money-bill-transfer icon"></i></label>
+                        {{ form.exchange(class_="form-control", id="exchange", placeholder="請輸入台幣金額") }}
                         <div class="form-text">可填多筆，逗號分隔</div>
                     </div>
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-credit-card icon"></i>刷卡</label>
-                        <input type="text" class="form-control" name="card" id="card" placeholder="請輸入當地貨幣金額">
+                        <label class="form-label">{{ form.card.label }}<i class="fa-solid fa-credit-card icon"></i></label>
+                        {{ form.card(class_="form-control", id="card", placeholder="請輸入當地貨幣金額") }}
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-coins icon"></i>原本有的貨幣</label>
-                        <input type="text" class="form-control" name="original_currency" placeholder="請輸入當地貨幣金額">
+                        <label class="form-label">{{ form.original_currency.label }}<i class="fa-solid fa-coins icon"></i></label>
+                        {{ form.original_currency(class_="form-control", placeholder="請輸入當地貨幣金額") }}
                     </div>
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-wallet icon"></i>現餘</label>
-                        <input type="text" class="form-control" name="balance" placeholder="請輸入當地貨幣金額">
+                        <label class="form-label">{{ form.balance.label }}<i class="fa-solid fa-wallet icon"></i></label>
+                        {{ form.balance(class_="form-control", placeholder="請輸入當地貨幣金額") }}
                     </div>
                 </div>
             </div>
@@ -350,6 +349,8 @@
                     <button type="button" id="logout-btn" class="logout-btn w-100" style="display:none;">登出</button>
                 </div>
             </div>
+            {{ form.spreadsheet_id(type="hidden", id="spreadsheet_id") }}
+            {{ form.google_access_token(type="hidden", id="google-access-token") }}
         </form>
         <div style="text-align:center;margin:18px 0 0 0;">
           <a href="{{ url_for('privacy') }}" style="font-weight:700;color:#2563eb;font-size:1.08rem;">隱私權政策</a>

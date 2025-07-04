@@ -100,8 +100,8 @@
 
 ## 常見問題（FAQ）
 
-### Q1. Google 登入時出現「已封鎖存取權：這項要求遭到 Google 政策封鎖」？
-A: 請用 Chrome、Safari、Edge、Firefox 等主流瀏覽器開啟本頁，不要用 LINE、微信、Facebook 等 App 內建瀏覽器。Google 為安全政策不支援 WebView 登入。
+### Q1. Google 登入時出現「已封鎖存取權：這項要求遭到 Google 政策封鎖」或「錯誤代碼 400：redirect_uri_mismatch」？
+A: 這是 Google OAuth 安全機制，通常是「授權的重新導向 URI」未正確設定。請到 Google Cloud Console > API 與服務 > 憑證 > OAuth 2.0 Client IDs，將你的 Render 網址（如 `https://yourapp.onrender.com/`）、自訂網域（如 `https://yourdomain.com/`）、本地測試網址（如 `http://localhost:5000/`）全部加進「授權的重新導向 URI」清單。網址必須完全一致（包含協定、網域、路徑、斜線），否則會出現 400 錯誤。修改後約需數分鐘生效。
 
 ### Q2. Google Sheets 建立失敗，顯示 `{{}}` 或空白？
 A: 請確認 Google 帳號已授權 Google Drive 權限，並確保網路連線正常。如持續失敗，請重新登入或稍後再試。

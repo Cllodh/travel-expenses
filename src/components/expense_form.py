@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from src.services.currency_service import CurrencyService
 import requests
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, IntegerField, SubmitField
+from wtforms import StringField, FloatField, IntegerField, SubmitField, SelectField
 from wtforms.validators import DataRequired, NumberRange, Optional
 
 expense_bp = Blueprint('expense', __name__)
@@ -56,14 +56,14 @@ def add_currency_symbol(amounts, symbol):
     return ', '.join([f"{symbol} {a}" for a in amounts]) if amounts else ''
 
 class ExpenseForm(FlaskForm):
-    country = StringField('國家', validators=[DataRequired()])
+    country = SelectField('國家', choices=[], validators=[DataRequired()])
     period = StringField('時間區間', validators=[DataRequired()])
     days = IntegerField('天數', validators=[DataRequired(), NumberRange(min=1, message='天數需大於0')])
-    ticket = FloatField('機票', validators=[NumberRange(min=0)], default=0)
-    hotel = FloatField('住宿', validators=[NumberRange(min=0)], default=0)
-    sim = FloatField('SIM', validators=[NumberRange(min=0)], default=0)
-    klook = FloatField('票券', validators=[NumberRange(min=0)], default=0)
-    insurance = FloatField('保險', validators=[NumberRange(min=0)], default=0)
+    ticket = FloatField('機票', validators=[NumberRange(min=0)])
+    hotel = FloatField('住宿', validators=[NumberRange(min=0)])
+    sim = FloatField('SIM', validators=[NumberRange(min=0)])
+    klook = FloatField('票券', validators=[NumberRange(min=0)])
+    insurance = FloatField('保險', validators=[NumberRange(min=0)])
     exchange = StringField('換匯', validators=[Optional()])
     card = StringField('刷卡', validators=[Optional()])
     original_currency = StringField('原本有的貨幣', validators=[Optional()])
@@ -76,6 +76,7 @@ class ExpenseForm(FlaskForm):
 @expense_bp.route('/', methods=['GET', 'POST'])
 def expense_form():
     form = ExpenseForm()
+    form.country.choices = [(c, c) for c in COUNTRY_CURRENCY.keys()] + [('其他', '其他')]
     if form.validate_on_submit():
         # 取得表單資料
         country = form.country.data
@@ -143,9 +144,7 @@ def expense_form():
             flash('未登入 Google 或未填寫 Google Sheets ID，僅本地處理（不寫入 Google Sheets）')
         return redirect(url_for('expense.expense_form'))
     elif request.method == 'POST':
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f"{getattr(form, field).label.text}：{error}")
+        pass
     return render_template('expense_form.html', form=form)
 
 @expense_bp.route('/rate')
