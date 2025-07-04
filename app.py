@@ -13,11 +13,12 @@ app.register_blueprint(expense_bp)
 # 加入靜態頁面路由
 @app.route('/privacy')
 def privacy():
-    return render_template('privacy.html')
+    return render_template('privacy_zh.html')
 
 @app.route('/terms')
 def terms():
-    return render_template('Terms.html')
+    return render_template('terms_zh.html')
+
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html'), 404

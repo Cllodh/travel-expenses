@@ -1,3 +1,16 @@
+<script>
+(function() {
+  var lang = navigator.language || navigator.userLanguage;
+  if (lang.startsWith('zh') && !lang.startsWith('zh-CN') && !window.location.pathname.includes('_zh')) {
+    window.location.href = '/privacy_zh.html';
+  } else if ((lang.startsWith('en') || lang.startsWith('zh-CN')) && window.location.pathname.includes('_zh')) {
+    window.location.href = '/privacy.html';
+  }
+})();
+</script>
+<div style="text-align:right;">
+  <a href="/privacy.html">English</a> | <a href="/privacy_zh.html">繁體中文</a>
+</div>
 <h1>Privacy Policy</h1>
 <p>Last updated: July 03, 2025</p>
 <p>This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.</p>
