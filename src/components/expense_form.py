@@ -4,6 +4,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from src.services.currency_service import CurrencyService
 import requests
+from flask_wtf import FlaskForm
+from wtforms import StringField, FloatField, IntegerField, SubmitField
+from wtforms.validators import DataRequired, NumberRange, Optional
 
 expense_bp = Blueprint('expense', __name__)
 
@@ -52,23 +55,41 @@ def parse_multi_currency(text):
 def add_currency_symbol(amounts, symbol):
     return ', '.join([f"{symbol} {a}" for a in amounts]) if amounts else ''
 
+class ExpenseForm(FlaskForm):
+    country = StringField('國家', validators=[DataRequired()])
+    period = StringField('時間區間', validators=[DataRequired()])
+    days = IntegerField('天數', validators=[DataRequired(), NumberRange(min=1, message='天數需大於0')])
+    ticket = FloatField('機票', validators=[NumberRange(min=0)], default=0)
+    hotel = FloatField('住宿', validators=[NumberRange(min=0)], default=0)
+    sim = FloatField('SIM', validators=[NumberRange(min=0)], default=0)
+    klook = FloatField('票券', validators=[NumberRange(min=0)], default=0)
+    insurance = FloatField('保險', validators=[NumberRange(min=0)], default=0)
+    exchange = StringField('換匯', validators=[Optional()])
+    card = StringField('刷卡', validators=[Optional()])
+    original_currency = StringField('原本有的貨幣', validators=[Optional()])
+    balance = StringField('現餘', validators=[Optional()])
+    rate = FloatField('匯率', validators=[DataRequired(), NumberRange(min=0.0001, message='匯率必須大於0')])
+    spreadsheet_id = StringField('spreadsheet_id', validators=[Optional()])
+    google_access_token = StringField('google_access_token', validators=[Optional()])
+    submit = SubmitField('送出')
+
 @expense_bp.route('/', methods=['GET', 'POST'])
 def expense_form():
-    if request.method == 'POST':
-        print('收到表單資料:', dict(request.form))
+    form = ExpenseForm()
+    if form.validate_on_submit():
         # 取得表單資料
-        country = request.form.get('country')
-        period = request.form.get('period')
-        days = request.form.get('days')
-        ticket = float(request.form.get('ticket') or 0)
-        hotel = float(request.form.get('hotel') or 0)
-        sim = float(request.form.get('sim') or 0)
-        klook = float(request.form.get('klook') or 0)
-        exchange = request.form.get('exchange')
-        card = request.form.get('card')
-        original_currency = request.form.get('original_currency')
-        balance = request.form.get('balance')
-        insurance = float(request.form.get('insurance') or 0)
+        country = form.country.data
+        period = form.period.data
+        days = form.days.data
+        ticket = form.ticket.data or 0
+        hotel = form.hotel.data or 0
+        sim = form.sim.data or 0
+        klook = form.klook.data or 0
+        exchange = form.exchange.data
+        card = form.card.data
+        original_currency = form.original_currency.data
+        balance = form.balance.data
+        insurance = form.insurance.data or 0
         currency = COUNTRY_CURRENCY.get(country, '') if country != '其他' else ''
         exchange_list = parse_multi_currency(exchange)
         card_list = parse_multi_currency(card)
@@ -79,13 +100,8 @@ def expense_form():
         card_str = card_str.replace('TWD', currency)
         original_str = add_currency_symbol(original_list, currency)
         balance_str = add_currency_symbol(balance_list, currency)
-        # 換匯直接加總（台幣）
         exchange_twd = sum(exchange_list)
-        # 其他三個欄位用匯率換算成台幣
-        rate = float(request.form.get('rate') or 0)
-        if rate <= 0:
-            flash('匯率必須大於0，請正確填寫！')
-            return redirect(url_for('expense.expense_form'))
+        rate = form.rate.data
         def to_twd_local(amount):
             try:
                 return float(amount) / rate if rate else 0
@@ -94,25 +110,19 @@ def expense_form():
         card_twd = sum([to_twd_local(amount) for amount in card_list])
         original_twd = sum([to_twd_local(amount) for amount in original_list])
         balance_twd = sum([to_twd_local(amount) for amount in balance_list])
-        # 先合併 (換匯 + 原本有的貨幣 - 現餘)
         other_twd = exchange_twd + original_twd - balance_twd
-        # 計算總花費
         total = ticket + hotel + insurance + sim + klook + card_twd + other_twd
         total = round(total, 2)
-        spreadsheet_id = request.form.get('spreadsheet_id')
-        access_token = request.form.get('google_access_token')
-        print('spreadsheet_id:', spreadsheet_id)
-        print('access_token:', access_token)
+        spreadsheet_id = form.spreadsheet_id.data
+        access_token = form.google_access_token.data
         row = [country, period, days, ticket, hotel, sim, klook, insurance, exchange_str, card_str, original_str, balance_str, rate, total]
         if access_token and spreadsheet_id:
-            # 先檢查 spreadsheet 是否存在
             check_url = f'https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}'
             check_headers = {'Authorization': f'Bearer {access_token}'}
             check_resp = requests.get(check_url, headers=check_headers)
             if check_resp.status_code == 404:
                 flash('Google Sheets 檔案不存在，請重新登入或建立新表單！')
                 return redirect(url_for('expense.expense_form'))
-            # 自動更新標題列
             headers = [
                 '旅行國家', '時間區間', '天數', '機票', '住宿', 'SIM', '票券', '保險',
                 '換匯', '刷卡', '原本有的貨幣', '現餘', '匯率', '總花費'
@@ -120,13 +130,11 @@ def expense_form():
             update_url = f'https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}/values/工作表1!A1:N1?valueInputOption=USER_ENTERED'
             update_data = {'values': [headers]}
             requests.put(update_url, headers=check_headers, json=update_data)
-            # 用 Google Sheets API 幫 user 寫入自己的表單
             url = f'https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}/values/工作表1!A1:append?valueInputOption=USER_ENTERED'
             headers = {'Authorization': f'Bearer {access_token}'}
             data = {'values': [row]}
             r = requests.post(url, headers=headers, json=data)
             result = r.json()
-            print('Google Sheets API 回應:', result)
             if 'error' in result:
                 flash('寫入 Google Sheets 失敗：' + result['error']['message'])
             else:
@@ -134,7 +142,11 @@ def expense_form():
         else:
             flash('未登入 Google 或未填寫 Google Sheets ID，僅本地處理（不寫入 Google Sheets）')
         return redirect(url_for('expense.expense_form'))
-    return render_template('expense_form.html')
+    elif request.method == 'POST':
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}：{error}")
+    return render_template('expense_form.html', form=form)
 
 @expense_bp.route('/rate')
 def get_rate():

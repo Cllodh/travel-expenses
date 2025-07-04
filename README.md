@@ -1,8 +1,17 @@
 # 旅行花費記錄系統
 
-版本：v0.2
+版本：v0.3
 
 一個現代化、響應式的旅行花費記錄網頁，支援多國幣別自動換算台幣，並將資料即時寫入 Google Sheets。介面簡潔、分區明確，適合個人或團體旅遊記帳。
+
+## v0.3 主要更新
+- **安全強化**：加入 CSRF 防護（Flask-WTF）、HTTP 安全標頭（Flask-Talisman）、請求速率限制（Flask-Limiter），所有敏感資訊（如 secret key、Google Sheets ID、client secret 檔名）皆改用環境變數管理。
+- **雙語隱私權政策與服務條款**：/privacy、/privacy_zh.html、/terms、/terms_zh.html 支援中英文切換，並自動依瀏覽器語言導向。
+- **Render 雲端部署最佳化**：支援 Render Secret Files 安全存放 Google 憑證，環境變數於 Render 後台集中管理。
+- **requirements.txt 補齊依賴**：新增 flask-talisman、flask-limiter、python-dotenv 等，確保部署即安全。
+- **config.py 重構**：所有敏感設定集中於環境變數，程式碼更安全、彈性。
+- **404 頁面與錯誤處理優化**：自訂 404.html，並建議加上 500.html。
+- **README 文件同步更新**：補充 Render 部署、環境變數、Secret Files 實作說明。
 
 ## v0.2 主要更新
 - 國家清單改為台灣人常去的前20個，並支援台灣、澳門、香港、中國。

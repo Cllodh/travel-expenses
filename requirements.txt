@@ -1,7 +1,9 @@
 Flask
 Flask-WTF
+flask-talisman
+flask-limiter
 gspread
 google-auth
 google-auth-oauthlib
-requests
-python-dotenv 
+python-dotenv
+requests 
