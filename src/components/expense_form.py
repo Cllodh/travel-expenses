@@ -59,11 +59,11 @@ class ExpenseForm(FlaskForm):
     country = SelectField('國家', choices=[], validators=[DataRequired()])
     period = StringField('時間區間', validators=[DataRequired()])
     days = IntegerField('天數', validators=[DataRequired(), NumberRange(min=1, message='天數需大於0')])
-    ticket = FloatField('機票', validators=[Optional(), NumberRange(min=0)])
-    hotel = FloatField('住宿', validators=[Optional(), NumberRange(min=0)])
-    sim = FloatField('SIM', validators=[Optional(), NumberRange(min=0)])
-    klook = FloatField('票券', validators=[Optional(), NumberRange(min=0)])
-    insurance = FloatField('保險', validators=[Optional(), NumberRange(min=0)])
+    ticket = StringField('機票', validators=[Optional()])
+    hotel = StringField('住宿', validators=[Optional()])
+    sim = StringField('SIM', validators=[Optional()])
+    klook = StringField('票券', validators=[Optional()])
+    insurance = StringField('保險', validators=[Optional()])
     exchange = StringField('換匯', validators=[Optional()])
     card = StringField('刷卡', validators=[Optional()])
     original_currency = StringField('原本有的貨幣', validators=[Optional()])
@@ -82,15 +82,16 @@ def expense_form():
         country = form.country.data
         period = form.period.data
         days = form.days.data
-        ticket = form.ticket.data or 0
-        hotel = form.hotel.data or 0
-        sim = form.sim.data or 0
-        klook = form.klook.data or 0
+        # 多筆金額自動加總
+        ticket = sum(parse_multi_currency(form.ticket.data))
+        hotel = sum(parse_multi_currency(form.hotel.data))
+        sim = sum(parse_multi_currency(form.sim.data))
+        klook = sum(parse_multi_currency(form.klook.data))
+        insurance = sum(parse_multi_currency(form.insurance.data))
         exchange = form.exchange.data
         card = form.card.data
         original_currency = form.original_currency.data
         balance = form.balance.data
-        insurance = form.insurance.data or 0
         currency = COUNTRY_CURRENCY.get(country, '') if country != '其他' else ''
         exchange_list = parse_multi_currency(exchange)
         card_list = parse_multi_currency(card)
@@ -139,7 +140,7 @@ def expense_form():
             if 'error' in result:
                 flash('寫入 Google Sheets 失敗：' + result['error']['message'])
             else:
-                flash('已成功寫入您的 Google Sheets！')
+                flash(f'已成功將 {period} {country} 之旅程的花費寫入 Google 試算表！')
         else:
             flash('未登入 Google 或未填寫 Google Sheets ID，僅本地處理（不寫入 Google Sheets）')
         return redirect(url_for('expense.expense_form'))

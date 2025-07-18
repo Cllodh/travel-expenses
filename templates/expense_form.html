@@ -223,18 +223,32 @@
         .login-sync-btn img {
             flex-shrink: 0;
         }
+        .required-star {
+            color: #e11d48;
+            font-size: 1.25em;
+            font-weight: bold;
+            margin-left: 0.25em;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
+    <div class="mx-3 mt-4">
+        <!-- 移除多餘的說明句 -->
+    </div>
     <div class="main-card">
         <h1 class="text-center" style="font-size:2.1rem;font-weight:800;color:#2563eb;margin:32px 0 12px 0;letter-spacing:1px;">
             <i class="fa-solid fa-earth-asia icon"></i>
             旅行花費紀錄表單
         </h1>
-        <div style="background:#f3fcf3;color:#25633b;font-size:0.93rem;margin-bottom:18px;padding:7px 14px 7px 14px;border-radius:7px;line-height:1.7;text-align:left;border:1.2px solid #d2f5d2;max-width:95%;margin-left:auto;margin-right:auto;">
-            <div style="margin-bottom:4px;"><i class="fa-regular fa-circle-check" style="color:#22c55e;margin-right:6px;"></i>請依旅程填寫各項花費，系統會自動換算匯率與計算總金額。</div>
-            <div style="margin-bottom:4px;"><i class="fa-regular fa-circle-check" style="color:#22c55e;margin-right:6px;"></i>選擇國家後，匯率會自動帶出（也可自行修改），所有金額皆可多筆輸入（逗號分隔）。</div>
-            <div><i class="fa-regular fa-circle-check" style="color:#22c55e;margin-right:6px;"></i>完成後可同步至 Google 試算表，方便日後查看。</div>
+        <!-- 移除這裡的說明句 -->
+        <div style="background:#f3fcf3;color:#25633b;font-size:1.01rem;margin-bottom:18px;padding:14px 18px 14px 18px;border-radius:12px;line-height:1.9;text-align:left;border:1.2px solid #d2f5d2;max-width:95%;margin-left:auto;margin-right:auto;box-shadow:0 2px 12px #22c55e18;">
+            <div style="display:flex;align-items:center;font-weight:700;color:#2563eb;font-size:1.13rem;background:#e0f2fe;padding:7px 12px 7px 10px;border-radius:8px 8px 8px 8px;margin-bottom:10px;"><i class="fa fa-info-circle me-2" style="font-size:1.25em;"></i>本工具可直接使用，不需登入。僅在保存在Google試算表時才需登入 Google 帳號。</div>
+            <ul style="padding-left:1.2em;margin-bottom:0;">
+                <li style="margin-bottom:7px;"><i class="fa-regular fa-circle-check" style="color:#22c55e;margin-right:7px;font-size:1.08em;"></i>請依旅程填寫各項花費，系統會自動換算匯率與計算總金額。</li>
+                <li style="margin-bottom:7px;"><i class="fa-regular fa-circle-check" style="color:#22c55e;margin-right:7px;font-size:1.08em;"></i>選擇國家後，匯率會自動帶出（也可自行修改），所有金額皆可多筆輸入（逗號分隔）。</li>
+                <li><i class="fa-regular fa-circle-check" style="color:#22c55e;margin-right:7px;font-size:1.08em;"></i>完成後可同步至 Google 試算表，方便日後查看。</li>
+            </ul>
         </div>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
@@ -251,7 +265,7 @@
                 <div class="section-title"><span class="icon"><i class="fa-solid fa-plane-departure"></i></span> 旅行基本資訊</div>
                 <div class="form-row">
                     <div class="col">
-                        <label class="form-label">{{ form.country.label }}<i class="fa-solid fa-flag icon"></i></label>
+                        <label class="form-label">{{ form.country.label }}<span class="required-star">*</span><i class="fa-solid fa-flag icon"></i></label>
                         {{ form.country(class_="form-select", id="country-select", required=True) }}
                     </div>
                     <div class="col">
@@ -264,11 +278,11 @@
                 </div>
                 <div class="form-row">
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-calendar-day icon"></i>出發日</label>
+                        <label class="form-label"><i class="fa-solid fa-calendar-day icon"></i>出發日<span class="required-star">*</span></label>
                         <input type="date" class="form-control" id="start-date" required>
                     </div>
                     <div class="col">
-                        <label class="form-label"><i class="fa-solid fa-calendar-day icon"></i>回國日</label>
+                        <label class="form-label"><i class="fa-solid fa-calendar-day icon"></i>回國日<span class="required-star">*</span></label>
                         <input type="date" class="form-control" id="end-date" required>
                     </div>
                     <div class="col">
@@ -311,22 +325,22 @@
                 <div class="form-row">
                     <div class="col">
                         <label class="form-label">{{ form.exchange.label }}<i class="fa-solid fa-money-bill-transfer icon"></i></label>
-                        {{ form.exchange(class_="form-control", id="exchange", placeholder="請輸入台幣金額") }}
+                        {{ form.exchange(class_="form-control", id="exchange", placeholder="請輸入台幣金額", min=0) }}
                         <div class="form-text">可填多筆，逗號分隔</div>
                     </div>
                     <div class="col">
                         <label class="form-label">{{ form.card.label }}<i class="fa-solid fa-credit-card icon"></i></label>
-                        {{ form.card(class_="form-control", id="card", placeholder="請輸入當地貨幣金額") }}
+                        {{ form.card(class_="form-control", id="card", placeholder="請輸入當地貨幣金額", min=0) }}
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="col">
                         <label class="form-label">{{ form.original_currency.label }}<i class="fa-solid fa-coins icon"></i></label>
-                        {{ form.original_currency(class_="form-control", placeholder="請輸入當地貨幣金額") }}
+                        {{ form.original_currency(class_="form-control", placeholder="請輸入當地貨幣金額", min=0) }}
                     </div>
                     <div class="col">
                         <label class="form-label">{{ form.balance.label }}<i class="fa-solid fa-wallet icon"></i></label>
-                        {{ form.balance(class_="form-control", placeholder="請輸入當地貨幣金額") }}
+                        {{ form.balance(class_="form-control", placeholder="請輸入當地貨幣金額", min=0) }}
                     </div>
                 </div>
             </div>
@@ -471,10 +485,78 @@
         });
         document.getElementById('end-date').addEventListener('change', calcDaysAndPeriod);
         // 送出前再次組合 period
+        // 新增：送出前檢查 userSpreadsheetId
+        function isSheetReady() {
+            // 只判斷 localStorage
+            return !!localStorage.getItem('userSpreadsheetId');
+        }
+        function fillGoogleFields() {
+            let tokenInput = document.getElementById('google-access-token');
+            if (!tokenInput) {
+                tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = 'google_access_token';
+                tokenInput.id = 'google-access-token';
+                document.getElementById('expense-form').appendChild(tokenInput);
+            }
+            tokenInput.value = googleAccessToken;
+
+            let idInput = document.getElementById('spreadsheet_id');
+            if (!idInput) {
+                idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'spreadsheet_id';
+                idInput.id = 'spreadsheet_id';
+                document.getElementById('expense-form').appendChild(idInput);
+            }
+            idInput.value = localStorage.getItem('userSpreadsheetId');
+        }
+        function setLoginSyncBtn(loggedIn) {
+            fillGoogleFields(); // 每次都補 input
+            const btn = document.getElementById('login-sync-btn');
+            const text = document.getElementById('login-sync-text');
+            const logoutBtn = document.getElementById('logout-btn');
+            if (loggedIn) {
+                if (!isSheetReady()) {
+                    btn.disabled = true;
+                    text.textContent = '新增一筆';
+                } else {
+                    btn.disabled = false;
+                    text.textContent = '繼續登記';
+                }
+                text.title = '';
+                btn.classList.add('success');
+                logoutBtn.style.display = '';
+            } else {
+                text.textContent = '登入並同步';
+                text.title = '';
+                btn.classList.remove('success');
+                btn.disabled = false;
+                logoutBtn.style.display = 'none';
+            }
+        }
+        // 移除紅框 JS，僅保留 required 與 alert 驗證
         document.getElementById('expense-form').addEventListener('submit', function(e) {
+            fillGoogleFields(); // 保險起見，送出前補一次
+            var country = document.getElementById('country-select').value;
+            var start = document.getElementById('start-date').value;
+            var end = document.getElementById('end-date').value;
+            if (!country || !start || !end) {
+                e.preventDefault();
+                alert('請完整填寫國家、出發日、回國日！');
+                return false;
+            }
+            if (googleAccessToken && !isSheetReady()) {
+                e.preventDefault();
+                alert('正在取得 Google 試算表 ID，請稍候再送出。');
+                return false;
+            }
             setTimeout(function() {
-                alert('已同步成功！如需登記第二筆，請繼續填寫並再次點擊「登入並同步」');
+                alert('已同步成功！如需登記第二筆，請繼續填寫並再次點擊「繼續登記」');
                 document.getElementById('expense-form').reset();
+                setTimeout(function() {
+                    setLoginSyncBtn(true);
+                }, 50);
             }, 300);
         });
         // 動態計算總花費
@@ -502,8 +584,9 @@
             const cardTWD = rate ? card / rate : 0;
             const originalTWD = rate ? original / rate : 0;
             const balanceTWD = rate ? balance / rate : 0;
-            const total = ticket + hotel + insurance + sim + klook + cardTWD + (exchange + originalTWD - balanceTWD);
-            document.getElementById('total-expense').textContent = Math.round(total*100)/100;
+            let total = ticket + hotel + insurance + sim + klook + cardTWD + (exchange + originalTWD - balanceTWD);
+            total = Math.max(0, Math.round(total*100)/100); // 不得為負
+            document.getElementById('total-expense').textContent = total;
         }
         // 綁定所有金額欄位與匯率欄位
         [
@@ -511,6 +594,14 @@
             '[name="exchange"]', '[name="card"]', '[name="original_currency"]', '[name="balance"]', '[name="rate"]'
         ].forEach(sel => {
             document.querySelector(sel).addEventListener('input', calcTotalExpense);
+        });
+        // 禁止所有金額欄位輸入負號，只移除負號
+        ['ticket', 'hotel', 'insurance', 'sim', 'klook', 'exchange', 'card', 'original_currency', 'balance'].forEach(function(name) {
+            document.querySelectorAll(`[name="${name}"]`).forEach(function(input) {
+                input.addEventListener('input', function() {
+                    this.value = this.value.replace(/-/g, '');
+                });
+            });
         });
         // 初始化
         calcTotalExpense();
@@ -546,43 +637,6 @@
             }
         };
         // 將登入與送出合併
-        function fillGoogleFields() {
-            let tokenInput = document.getElementById('google-access-token');
-            if (!tokenInput) {
-                tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = 'google_access_token';
-                tokenInput.id = 'google-access-token';
-                document.getElementById('expense-form').appendChild(tokenInput);
-            }
-            tokenInput.value = googleAccessToken;
-
-            let idInput = document.getElementById('spreadsheet_id');
-            if (!idInput) {
-                idInput = document.createElement('input');
-                idInput.type = 'hidden';
-                idInput.name = 'spreadsheet_id';
-                idInput.id = 'spreadsheet_id';
-                document.getElementById('expense-form').appendChild(idInput);
-            }
-            idInput.value = userSpreadsheetId;
-        }
-        function setLoginSyncBtn(loggedIn) {
-            const btn = document.getElementById('login-sync-btn');
-            const text = document.getElementById('login-sync-text');
-            const logoutBtn = document.getElementById('logout-btn');
-            if (loggedIn) {
-                text.textContent = '繼續登記';
-                text.title = '';
-                btn.classList.add('success');
-                logoutBtn.style.display = '';
-            } else {
-                text.textContent = '登入並同步';
-                text.title = '';
-                btn.classList.remove('success');
-                logoutBtn.style.display = 'none';
-            }
-        }
         document.getElementById('login-sync-btn').onclick = function() {
             if (!googleAccessToken) {
                 tokenClient.requestAccessToken();
@@ -709,6 +763,10 @@
             setLoginSyncBtn(false);
             alert('已登出 Google 帳號！');
         };
+        // 國家、出發日、回國日欄位加上 required
+        document.getElementById('country-select').setAttribute('required', 'required');
+        document.getElementById('start-date').setAttribute('required', 'required');
+        document.getElementById('end-date').setAttribute('required', 'required');
     </script>
 </body>
 </html>  

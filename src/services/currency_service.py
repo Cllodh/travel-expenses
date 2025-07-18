@@ -6,7 +6,8 @@ import requests
 class CurrencyService:
     def __init__(self, base_currency='TWD'):
         self.base_currency = base_currency
-        self.api_url = f'https://api.exchangerate-api.com/v4/latest/{self.base_currency}'
+        self.api_key = '1YEmWKXiCTbLzf3uRyHjHo30F8kCwErHiUTTWGmXcXUyx9bMDZTtJBYeJ28ODkBU'
+        self.api_url = f'https://api.unirateapi.com/api/rates?api_key={self.api_key}&from={self.base_currency}'
         self.rates = self._fetch_rates()
 
     def _fetch_rates(self):
